@@ -5,6 +5,8 @@ import transforms3d as t3d
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.axes3d import Axes3D
 
+import time #for testing code speed
+
 pi = np.pi
 
 class dh_robot_config:
@@ -23,6 +25,8 @@ class dh_robot_config:
         self._Tbase[:3,:3] = t3d.euler.euler2mat(ai, aj, ak) #construct base transform
         self._Tjoint = []
         self._T = []
+        self._Tlambda = []
+        self._Rlambda = []
         self._Tx = []
         self._Tx_inv = []
         self._J_position = []
@@ -68,6 +72,10 @@ class dh_robot_config:
                 self._T.append(self._T[i-1]*self._Tjoint[i])
             else:
                 self._T.append(self._Tbase*self._Tjoint[i]) #notice this includes the base transform
+                
+            self._Tlambda.append(sp.lambdify(self.q, self._T[i]))
+            self._Rlambda.append(sp.lambdify(self.q, self._T[i][:3,:3]))
+            
             self._Tx.append(self._calc_Tx(i)) #
             
             #calculate inverse transforms
@@ -94,6 +102,18 @@ class dh_robot_config:
         parameters = tuple(q) + tuple(x)
         return self._Tx[i](*parameters)[:-1].flatten()
     
+    def Orientation_quaternion(self, i, q):
+        parameters = tuple(q)
+        return t3d.quaternions.mat2quat(self._Rlambda[i](*parameters))
+    
+    def Orientation_euler(self, i, q):
+        parameters = tuple(q)
+        return t3d.euler.mat2euler(self._Rlambda[i](*parameters))
+    
+    def Orientation_axAngle(self, i, q):
+        parameters = tuple(q)
+        return t3d.axangles.mat2axangle(self._Rlambda[i](*parameters))
+    
     def _calc_J_position(self, i, lambdify = True):
         Tx = self._calc_Tx(i, lambdify = False)
         J = Tx.jacobian(sp.Matrix(self.q))[:3,:]
@@ -103,7 +123,7 @@ class dh_robot_config:
     
     def J_position(self, i, q, x=[0, 0, 0]):
         parameters = tuple(q) + tuple(x)
-        return np.array(self._J_position[name](*parameters))
+        return np.array(self._J_position[i](*parameters))
     
     def _calc_J_orientation(self, i, lambdify = True):
         J = sp.zeros(3,i+1)
@@ -124,7 +144,7 @@ class dh_robot_config:
     
     def J_orientation(self, i, q, x=[0, 0, 0]):
         parameters = tuple(q) + tuple(x)
-        return np.array(self._J_orientation[name](*parameters))
+        return np.array(self._J_orientation[i](*parameters))
     
     def _calc_T_inv(self, name, x, lambdify=True):
         pass
@@ -204,14 +224,37 @@ if __name__ == '__main__':
     for i in range(robot.num_joints):
         sp.pprint(robot._T[i])
         print('\n')
+        
+    #check FK matches up by hand
     print(robot.Tx(2, [0.5, 0, 0, 0])) #-0.5 y
     print(robot.Tx(2, [0., 0.5, 0, 0])) #0.5 z
     print(robot.Tx(2, [0., 0., 0.5, 0])) #0.5 x
+    
+    #check Jacobian matches up by hand
     for i in range(robot.num_joints):
         print('position jacobian:\n')
         sp.pprint(robot._calc_J_position(i, lambdify = False))
         print('orientation jacobian:\n')
         sp.pprint(robot._calc_J_orientation(i, lambdify = False))
         print('\n')
+        
+   #time FK and Jacobian calculations
+    num_iters = 100000
+    qs = np.random.rand(num_iters,4)
+    
+    start = time.time()
+    for i in range(num_iters):
+        robot.Tx(3, qs[i])
+    print('Time per iter for FK over {} iters: {}'.format(num_iters, (time.time()-start)/num_iters))
 
     
+    start = time.time()
+    for i in range(num_iters):
+        robot.J_position(3, qs[i])
+        robot.J_orientation(3, qs[i])
+    print('Time per iter for Jacobian over {} iters: {}'.format(num_iters, (time.time()-start)/num_iters))
+    
+    
+    print('Orientation quaternion test: {}'.format(robot.Orientation_quaternion(3,qs[-1])))
+          
+     
