@@ -5,7 +5,7 @@ import os
 import ctypes as ct
 
 #sys.path.append(".")
-from VREP_Python.vrepConst import *
+from vrep_interface_library.VREP_Python.vrepConst import *
 
 #load library
 libsimx = None

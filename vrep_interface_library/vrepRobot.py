@@ -1,4 +1,4 @@
-import VREP_Python.vrep as vrep
+import vrep_interface_library.VREP_Python.vrep as vrep
 import numpy as np
 import time
 
