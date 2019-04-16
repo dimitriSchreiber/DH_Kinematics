@@ -9,6 +9,9 @@ import time #for testing code speed
 
 pi = np.pi
 
+#https://stackoverflow.com/questions/24566920/eigen-matrix-vs-numpy-array-multiplication-performance
+#using floating point may provide a signficant speed up
+
 class dh_robot_config:
     ''' provides a robot class for forward and inverse kinematics, jacobian calculation based on modified DH parameters as defined in Introduction to Robotics, Mechanics and Control'''
     
@@ -43,12 +46,16 @@ class dh_robot_config:
         #constructs transform matrices for joints
         for i in range(self.num_joints):
             theta = self.theta[i]
-            a = self.a[i]
+            #a = self.a[i]
             D = self.D[i]
             if i > 0:
                 alpha = self.alpha[i-1]
             else:
                 alpha = 0
+            if i > 0:
+                a = self.a[i-1]
+            else:
+                a = 0
     
             #theta, D, alpha, a = sp.symbols('theta D alpha a')
             
