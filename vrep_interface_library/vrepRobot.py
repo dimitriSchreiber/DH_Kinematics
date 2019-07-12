@@ -1,4 +1,5 @@
-import vrep_interface_library.VREP_Python.vrep as vrep
+# import vrep_interface_library.VREP_Python.vrep as vrep
+import VREP_Python.vrep as vrep
 import numpy as np
 import time
 
@@ -31,7 +32,7 @@ By breaking up the arm into seperate clusters I should be able to get the distan
 
 Path planning:
 https://www.youtube.com/watch?v=JAs2yciPjvM
-http://www.coppeliarobotics.com/helpFiles/en/pathAndMotionPlanningModules.htm
+http://www.coppeliarobotics.com/helpFiles/en/pathAndMotionPlanningModules.html
 http://ompl.kavrakilab.org/blog.html
 '''
 
