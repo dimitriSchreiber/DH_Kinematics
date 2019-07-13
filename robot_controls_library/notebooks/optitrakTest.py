@@ -44,7 +44,7 @@ track_data.parse_data(NatNet.joint_data, NatNet.frame) #updates the frame and da
 
 while True:
     time.sleep(0.1)
-    base = track_data.bodies[0].homogenous_mat
+    base = track_data.bodies[0].homogenous_mat  # Should be the frame of base with respect to world
     base_inv = track_data.bodies[0].homg_inv
     rgdbdy1 = track_data.bodies[0].homogenous_mat
     

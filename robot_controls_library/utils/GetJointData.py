@@ -100,3 +100,4 @@ class NatNetFuncs():
     def receiveRigidBodyFrameList(self, rigid_body_list, timestamp): #receives all the information at once
         #global joint_data
         self.joint_data = [rigid_body_list, timestamp]
+        print('function called')
